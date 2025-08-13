@@ -74,20 +74,6 @@ const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div className="flex justify-end mb-4 gap-2">
-          <button
-            onClick={() => i18n.changeLanguage("en")}
-            className="px-2 py-1 text-xs border rounded"
-          >
-            EN
-          </button>
-          <button
-            onClick={() => i18n.changeLanguage("id")}
-            className="px-2 py-1 text-xs border rounded"
-          >
-            ID
-          </button>
-        </div>
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900">
             {isSignUp ? t("login.createAccount") : t("login.signInToAccount")}
