@@ -1,18 +1,25 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Code, User, LogOut } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { Link, useNavigate } from "react-router-dom";
+import { Code, User, LogOut } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 const Navbar: React.FC = () => {
   const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+
+  const handleLanguageSwitch = () => {
+    const newLang = i18n.language === "en" ? "id" : "en";
+    i18n.changeLanguage(newLang);
+  };
 
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      console.error('Failed to logout:', error);
+      console.error("Failed to logout:", error);
     }
   };
 
@@ -44,8 +51,16 @@ const Navbar: React.FC = () => {
             </Link>
           </div>
 
-          {/* User Actions */}
+          {/* User Actions & Language Switch */}
           <div className="flex items-center space-x-4">
+            {/* Language Switch Button */}
+            <button
+              onClick={handleLanguageSwitch}
+              className="px-3 py-1 rounded-md border text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors ml-2"
+              aria-label="Switch Language"
+            >
+              {i18n.language === "en" ? "ID" : "EN"}
+            </button>
             {loading ? (
               // Show loading state while checking auth
               <div className="flex items-center space-x-2">
@@ -58,10 +73,10 @@ const Navbar: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <User className="h-5 w-5 text-gray-500" />
                   <span className="text-sm text-gray-700">
-                    {user?.name || 'User'}
+                    {user?.name || "User"}
                   </span>
                 </div>
-                <button 
+                <button
                   onClick={handleLogout}
                   className="flex items-center space-x-1 text-gray-500 hover:text-red-600 transition-colors"
                 >

@@ -1,15 +1,15 @@
-import React, { useState, useRef } from 'react';
-import Editor from '@monaco-editor/react';
-import { 
-  Play, 
-  RotateCcw, 
-  Settings, 
-  Maximize, 
+import React, { useState, useRef } from "react";
+import Editor from "@monaco-editor/react";
+import {
+  Play,
+  RotateCcw,
+  Settings,
+  Maximize,
   Minimize,
   Copy,
-  Check
-} from 'lucide-react';
-import { Language } from '../types/interview';
+  Check,
+} from "lucide-react";
+import { Language } from "../types/interview";
 
 interface CodeEditorProps {
   initialCode: string;
@@ -19,6 +19,7 @@ interface CodeEditorProps {
   onRun: () => void;
   isRunning?: boolean;
   readOnly?: boolean;
+  hideRunButton?: boolean;
 }
 
 const CodeEditor: React.FC<CodeEditorProps> = ({
@@ -28,19 +29,24 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   onLanguageChange,
   onRun,
   isRunning = false,
-  readOnly = false
+  readOnly = false,
+  hideRunButton = false,
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fontSize, setFontSize] = useState(14);
-  const [theme, setTheme] = useState<'vs-dark' | 'vs-light'>('vs-dark');
+  const [theme, setTheme] = useState<"vs-dark" | "vs-light">("vs-dark");
   const [copied, setCopied] = useState(false);
   const editorRef = useRef<any>(null);
 
-  const languageOptions: { value: Language; label: string; monacoLang: string }[] = [
-    { value: 'javascript', label: 'JavaScript', monacoLang: 'javascript' },
-    { value: 'python', label: 'Python', monacoLang: 'python' },
-    { value: 'java', label: 'Java', monacoLang: 'java' },
-    { value: 'cpp', label: 'C++', monacoLang: 'cpp' }
+  const languageOptions: {
+    value: Language;
+    label: string;
+    monacoLang: string;
+  }[] = [
+    { value: "javascript", label: "JavaScript", monacoLang: "javascript" },
+    { value: "python", label: "Python", monacoLang: "python" },
+    { value: "java", label: "Java", monacoLang: "java" },
+    { value: "cpp", label: "C++", monacoLang: "cpp" },
   ];
 
   const handleEditorDidMount = (editor: any) => {
@@ -56,20 +62,26 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   };
 
   const handleCopyCode = async () => {
-    const code = editorRef.current?.getValue() || '';
+    const code = editorRef.current?.getValue() || "";
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy code:', err);
+      console.error("Failed to copy code:", err);
     }
   };
 
-  const currentLangOption = languageOptions.find(lang => lang.value === language);
+  const currentLangOption = languageOptions.find(
+    (lang) => lang.value === language
+  );
 
   return (
-    <div className={`bg-white rounded-lg border shadow-sm ${isFullscreen ? 'fixed inset-4 z-50' : 'h-96'}`}>
+    <div
+      className={`bg-white rounded-lg border shadow-sm ${
+        isFullscreen ? "fixed inset-4 z-50" : "h-96"
+      }`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b bg-gray-50 rounded-t-lg">
         <div className="flex items-center space-x-4">
@@ -89,11 +101,13 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
           {/* Theme Toggle */}
           <button
-            onClick={() => setTheme(theme === 'vs-dark' ? 'vs-light' : 'vs-dark')}
+            onClick={() =>
+              setTheme(theme === "vs-dark" ? "vs-light" : "vs-dark")
+            }
             className="px-2 py-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
             title="Toggle Theme"
           >
-            {theme === 'vs-dark' ? '🌙' : '☀️'}
+            {theme === "vs-dark" ? "🌙" : "☀️"}
           </button>
 
           {/* Font Size */}
@@ -105,7 +119,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             >
               A-
             </button>
-            <span className="text-xs text-gray-500 w-8 text-center">{fontSize}</span>
+            <span className="text-xs text-gray-500 w-8 text-center">
+              {fontSize}
+            </span>
             <button
               onClick={() => setFontSize(Math.min(24, fontSize + 2))}
               className="px-1 text-sm text-gray-600 hover:text-gray-800"
@@ -142,20 +158,22 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           )}
 
           {/* Run Button */}
-          <button
-            onClick={onRun}
-            disabled={isRunning}
-            className="flex items-center space-x-1 bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Play className="h-3 w-3" />
-            <span>{isRunning ? 'Running...' : 'Run'}</span>
-          </button>
+          {!hideRunButton && (
+            <button
+              onClick={onRun}
+              disabled={isRunning}
+              className="flex items-center space-x-1 bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Play className="h-3 w-3" />
+              <span>{isRunning ? "Running..." : "Run"}</span>
+            </button>
+          )}
 
           {/* Fullscreen Toggle */}
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
             className="p-1.5 text-gray-600 hover:text-gray-800 transition-colors"
-            title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
           >
             {isFullscreen ? (
               <Minimize className="h-4 w-4" />
@@ -167,29 +185,29 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       </div>
 
       {/* Editor */}
-      <div className={`${isFullscreen ? 'h-full' : 'h-80'}`}>
+      <div className={`${isFullscreen ? "h-full" : "h-80"}`}>
         <Editor
           height="100%"
-          language={currentLangOption?.monacoLang || 'javascript'}
+          language={currentLangOption?.monacoLang || "javascript"}
           theme={theme}
           value={initialCode}
-          onChange={(value) => onCodeChange(value || '')}
+          onChange={(value) => onCodeChange(value || "")}
           onMount={handleEditorDidMount}
           options={{
             fontSize,
             minimap: { enabled: isFullscreen },
             scrollBeyondLastLine: false,
             readOnly,
-            wordWrap: 'on',
-            lineNumbers: 'on',
+            wordWrap: "on",
+            lineNumbers: "on",
             automaticLayout: true,
             tabSize: 2,
             insertSpaces: true,
             formatOnPaste: true,
             formatOnType: true,
             suggestOnTriggerCharacters: true,
-            acceptSuggestionOnEnter: 'on',
-            snippetSuggestions: 'inline',
+            acceptSuggestionOnEnter: "on",
+            snippetSuggestions: "inline",
           }}
         />
       </div>
@@ -200,7 +218,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           <div className="flex items-center space-x-4">
             <span>Language: {currentLangOption?.label}</span>
             <span>•</span>
-            <span>Theme: {theme === 'vs-dark' ? 'Dark' : 'Light'}</span>
+            <span>Theme: {theme === "vs-dark" ? "Dark" : "Light"}</span>
           </div>
           <div className="flex items-center space-x-2">
             <span>Press Ctrl+/ for shortcuts</span>
