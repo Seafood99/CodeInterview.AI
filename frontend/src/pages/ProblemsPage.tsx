@@ -11,18 +11,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
-interface Problem {
-  id: number;
-  title: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  category: string;
-  solved: boolean;
-  acceptance: number;
-  estimatedTime: string;
-  description: string;
-  tags: string[];
-}
+import PROBLEMS from "../data/problemsData";
 
 const ProblemsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -31,80 +20,20 @@ const ProblemsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Mock problems data
-  const problems: Problem[] = [
-    {
-      id: 1,
-      title: "Two Sum",
-      difficulty: "Easy",
-      category: "Arrays",
-      solved: true,
-      acceptance: 85,
-      estimatedTime: "5-10 min",
-      description:
-        "Given an array of integers nums and an integer target, return indices of two numbers that add up to target.",
-      tags: ["Array", "Hash Table"],
-    },
-    {
-      id: 2,
-      title: "Add Two Numbers",
-      difficulty: "Medium",
-      category: "Linked Lists",
-      solved: false,
-      acceptance: 72,
-      estimatedTime: "15-20 min",
-      description:
-        "Add two numbers represented as linked lists and return the sum as a linked list.",
-      tags: ["Linked List", "Math"],
-    },
-    {
-      id: 3,
-      title: "Longest Substring Without Repeating Characters",
-      difficulty: "Medium",
-      category: "Strings",
-      solved: true,
-      acceptance: 68,
-      estimatedTime: "10-15 min",
-      description:
-        "Find the length of the longest substring without repeating characters.",
-      tags: ["String", "Sliding Window", "Hash Table"],
-    },
-    {
-      id: 4,
-      title: "Median of Two Sorted Arrays",
-      difficulty: "Hard",
-      category: "Arrays",
-      solved: false,
-      acceptance: 45,
-      estimatedTime: "25-30 min",
-      description:
-        "Find the median of two sorted arrays with optimal time complexity.",
-      tags: ["Array", "Binary Search", "Divide and Conquer"],
-    },
-    {
-      id: 5,
-      title: "Valid Parentheses",
-      difficulty: "Easy",
-      category: "Stacks",
-      solved: true,
-      acceptance: 89,
-      estimatedTime: "5-8 min",
-      description: "Determine if the input string has valid parentheses.",
-      tags: ["String", "Stack"],
-    },
-    {
-      id: 6,
-      title: "Binary Tree Inorder Traversal",
-      difficulty: "Easy",
-      category: "Trees",
-      solved: false,
-      acceptance: 78,
-      estimatedTime: "8-12 min",
-      description:
-        "Return the inorder traversal of a binary tree's node values.",
-      tags: ["Tree", "Depth-First Search", "Binary Tree"],
-    },
-  ];
+  const lang = i18n.language === 'id' ? 'id' : 'en';
+  const problems = PROBLEMS.map((p) => {
+    const solved = !!localStorage.getItem(`ci_solved_${p.id}`);
+    // Dummy acceptance and estimatedTime for demo
+    return {
+      ...p,
+      solved,
+      acceptance: 80,
+      estimatedTime: "10-20 min",
+      tags: p.tags || [],
+      title: p.title[lang],
+      description: p.description[lang],
+    };
+  });
 
   const categories = [
     "Arrays",

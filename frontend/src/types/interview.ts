@@ -2,16 +2,16 @@ export type Language = 'javascript' | 'python' | 'java' | 'cpp';
 
 export interface Problem {
   id: number;
-  title: string;
+  title: { en: string; id: string };
   difficulty: 'Easy' | 'Medium' | 'Hard';
   category: string;
-  description: string;
+  description: { en: string; id: string };
   examples: Array<{
     input: string;
     output: string;
-    explanation?: string;
+    explanation?: { en: string; id: string };
   }>;
-  constraints: string[];
+  constraints: Array<{ en: string; id: string }>;
   hints: string[];
   starterCode: Record<Language, string>;
   testCases: Array<{
