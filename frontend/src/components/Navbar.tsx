@@ -127,8 +127,13 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Mobile Navigation */}
-          {isMenuOpen && (
-            <div className="lg:hidden absolute top-full left-0 right-0 bg-white shadow-lg border-b border-gray-200 py-2">
+          {/* Mobile Navigation with animation */}
+          <div
+            className={`lg:hidden absolute top-full left-0 right-0 bg-white shadow-lg border-b border-gray-200 py-2 z-50 transition-all duration-300 ease-in-out transform origin-top
+              ${isMenuOpen ? 'scale-y-100 opacity-100 pointer-events-auto' : 'scale-y-0 opacity-0 pointer-events-none'}`}
+            aria-hidden={!isMenuOpen}
+          >
+            {isMenuOpen && (
               <div className="flex flex-col space-y-2 px-4">
                 <button
                   onClick={() => {
@@ -148,6 +153,16 @@ const Navbar: React.FC = () => {
                 >
                   Dashboard
                 </button>
+                <button
+                  onClick={() => {
+                    handleLanguageSwitch();
+                    setIsMenuOpen(false);
+                  }}
+                  className="px-3 py-2 rounded-md border text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors mb-2"
+                  aria-label="Switch Language"
+                >
+                  {i18n.language === "en" ? "ID" : "EN"}
+                </button>
                 <div className="border-t border-gray-200 my-2"></div>
                 {user && (
                   <button
@@ -162,8 +177,8 @@ const Navbar: React.FC = () => {
                   </button>
                 )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Custom Confirm Modal for navigation block */}
           {pendingAction && (

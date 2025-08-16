@@ -225,6 +225,10 @@ const InterviewPage: React.FC = () => {
   const handleSubmit = () => {
     setHasSubmitted(true);
     setIsActive(false);
+    // Jika di mobile, langsung tampilkan editor agar tombol Resubmit terlihat
+    if (window.innerWidth < 1024) {
+      setShowDescription(false);
+    }
     // Simpan status ke localStorage
     localStorage.setItem(
       `ci_solved_${currentProblem?.id}`,
@@ -360,6 +364,17 @@ const [pendingNavigation, setPendingNavigation] = useState<null | (() => void)>(
           showDescription ? 'block' : 'hidden'
         } lg:block lg:w-1/2 bg-white border-r overflow-y-auto w-full max-w-full`}>
           <ProblemDescription problem={currentProblem} />
+          {/* Tombol Start di bawah deskripsi soal, hanya di mobile dan jika belum mulai */}
+          {!hasStarted && !hasSubmitted && (
+            <div className="block lg:hidden w-full p-4 flex justify-center">
+              <button
+                className="w-full max-w-sm px-8 py-3 min-h-[44px] bg-primary-600 text-white rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors"
+                onClick={handleStart}
+              >
+                {t("start")}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Code Editor & Results, hanya tampil jika sudah mulai */}
@@ -416,12 +431,13 @@ const [pendingNavigation, setPendingNavigation] = useState<null | (() => void)>(
                 </div>
               )}
               {hasSubmitted && (
-                <div className="p-4 sm:p-6 border-t flex flex-col items-center gap-2">
+                <div className="p-4 sm:p-6 border-t flex flex-col items-center gap-3 mt-2">
                   <div className="text-green-700 font-semibold text-center">
                     {t("submittedMessage")}
                   </div>
                   <button
-                    className="px-6 py-2 min-h-[40px] bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-base"
+                    className="w-full max-w-xs px-6 py-3 min-h-[44px] bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-base shadow-md"
+                    style={{ position: 'relative', zIndex: 10 }}
                     onClick={() => {
                       setHasSubmitted(false);
                       setHasStarted(true);

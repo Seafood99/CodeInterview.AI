@@ -172,16 +172,16 @@ const ProblemsPage: React.FC = () => {
             key={problem.id}
             className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
           >
-            <div className="p-6">
+            <div className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
+                  <div className="flex items-center space-x-2 mb-1">
                     {problem.solved ? (
                       <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                     ) : (
                       <Circle className="h-5 w-5 text-gray-400 flex-shrink-0" />
                     )}
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-base font-semibold text-gray-900">
                       {problem.title}
                     </h3>
                     <span
@@ -193,11 +193,11 @@ const ProblemsPage: React.FC = () => {
                     </span>
                   </div>
 
-                  <p className="text-gray-600 mb-3 line-clamp-2">
+                  <p className="text-gray-600 mb-2 text-sm line-clamp-2">
                     {problem.description}
                   </p>
 
-                  <div className="flex items-center space-x-6 text-sm text-gray-500">
+                  <div className="flex items-center space-x-4 text-xs text-gray-500">
                     <div className="flex items-center space-x-1">
                       <Code className="h-4 w-4" />
                       <span>{problem.category}</span>
@@ -213,7 +213,7 @@ const ProblemsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-1 mt-3">
+                  <div className="flex flex-wrap gap-1 mt-2">
                     {problem.tags.map((tag) => (
                       <span
                         key={tag}
@@ -225,16 +225,16 @@ const ProblemsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="ml-6 flex flex-col space-y-2">
+                <div className="ml-4 flex flex-col space-y-1 items-end min-w-[110px]">
                   <Link
                     to={`/interview/${problem.id}`}
-                    className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium text-center"
+                    className="bg-primary-600 text-white px-3 py-1.5 rounded-md hover:bg-primary-700 transition-colors text-xs font-medium text-center min-w-[90px]"
                   >
                     {problem.solved
                       ? t("problems.solveAgain")
                       : t("problems.startSolving")}
                   </Link>
-                  <button className="flex items-center space-x-1 text-primary-600 hover:text-primary-700 text-sm">
+                  <button className="flex items-center space-x-1 text-primary-600 hover:text-primary-700 text-xs">
                     <Brain className="h-4 w-4" />
                     <span>{t("problems.aiHints")}</span>
                   </button>

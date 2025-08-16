@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Code, Brain, Target, BarChart } from "lucide-react";
+import GraniteLogoAnimated from "../components/GraniteLogoAnimated";
 import { useTranslation } from "react-i18next";
 
 const HomePage: React.FC = () => {
@@ -8,7 +9,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Hero Section */}
-      <div className="text-center py-20">
+  <div className="text-center py-20 relative">
         <h1 className="text-5xl font-bold text-gray-900 mb-6">
           {t("home.title1")}{" "}
           <span className="text-primary-600">{t("home.title2")}</span>
@@ -16,7 +17,7 @@ const HomePage: React.FC = () => {
         <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
           {t("home.subtitle")}
         </p>
-        <div className="flex justify-center space-x-4">
+  <div className="flex justify-center space-x-4 mb-8">
           <Link
             to="/problems"
             className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200 text-lg font-semibold"
@@ -29,6 +30,9 @@ const HomePage: React.FC = () => {
           >
             {t("home.signUpFree")}
           </Link>
+        </div>
+        <div className="flex justify-center mt-4">
+          <GraniteLogoAnimated />
         </div>
       </div>
 
