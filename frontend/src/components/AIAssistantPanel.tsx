@@ -42,8 +42,8 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
   if (!show) return null;
 
   return (
-    <div className="fixed top-20 right-8 w-[400px] max-w-[90vw] h-[70vh] z-50 bg-white border border-gray-300 rounded-xl shadow-2xl flex flex-col animate-fadein">
-      <div className="p-4 border-b bg-white flex items-center justify-between rounded-t-xl">
+    <div className="fixed inset-0 lg:inset-auto lg:top-20 lg:right-8 w-full lg:w-[400px] h-full lg:h-[70vh] z-50 bg-white border-t lg:border lg:border-gray-300 lg:rounded-xl shadow-2xl flex flex-col animate-fadein">
+      <div className="p-4 border-b bg-white flex items-center justify-between lg:rounded-t-xl">
         <div className="flex items-center space-x-2">
           <Brain className="h-5 w-5 text-primary-600" />
           <span className="font-semibold">AI Assistant</span>
@@ -131,23 +131,39 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
         )}
       </div>
       {/* Message Input */}
-      <div className="p-4 border-t bg-white rounded-b-xl">
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            value={userMessage}
-            onChange={(e) => setUserMessage(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-            placeholder={t("askAi")}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={!userMessage.trim() || isAiThinking}
-            className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <Send className="h-4 w-4" />
-          </button>
+      <div className="p-4 border-t bg-white lg:rounded-b-xl">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex-1 flex space-x-2">
+            <input
+              type="text"
+              value={userMessage}
+              onChange={(e) => setUserMessage(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+              placeholder={t("askAi")}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={!userMessage.trim() || isAiThinking}
+              className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="flex-wrap gap-2 hidden sm:flex">
+            <button
+              onClick={() => handleQuickAction("explain")}
+              className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200"
+            >
+              ❓ {t("explain")}
+            </button>
+            <button
+              onClick={() => handleQuickAction("optimize")}
+              className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200"
+            >
+              ⚡ {t("optimize")}
+            </button>
+          </div>
         </div>
       </div>
     </div>

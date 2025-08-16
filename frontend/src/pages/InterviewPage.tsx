@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
-
 import { useParams, useNavigate } from "react-router-dom";
 import { Clock, Brain } from "lucide-react";
 import CodeEditor from "../components/CodeEditor";
@@ -12,10 +11,13 @@ import { Language, Problem, TestResult } from "../types/interview";
 import { API_BASE_URL } from "../config";
 import { useTimer } from "../hooks/useTimer";
 import { useAIAssistant } from "../hooks/useAIAssistant";
-
 import PROBLEMS from "../data/problemsData";
+import { useNavigationBlock } from "../contexts/NavigationBlockContext";
 
 const InterviewPage: React.FC = () => {
+  // Navigation block context
+  const { setBlockNavigation, setOnTryNavigate } = useNavigationBlock();
+
   // Language state for code editor
   const [language, setLanguage] = useState<Language>("javascript");
   // Test results state
@@ -33,7 +35,6 @@ const InterviewPage: React.FC = () => {
     cpp: "",
   });
   const [code, setCode] = useState("");
-  {/* Language switcher removed, as it's already present in the navbar */}
   const [hasStarted, setHasStarted] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isActive, setIsActive] = useState(false);
@@ -43,6 +44,8 @@ const InterviewPage: React.FC = () => {
   const lang = i18n.language === 'id' ? 'id' : 'en';
   // AI Chat States
   const [showAiPanel, setShowAiPanel] = useState(false);
+  // Mobile view state
+  const [showDescription, setShowDescription] = useState(true);
   const {
     aiMessages,
     setAiMessages,
@@ -53,8 +56,19 @@ const InterviewPage: React.FC = () => {
     handleQuickAction,
   } = useAIAssistant(currentProblem, code, language);
 
-  // Timer effect
-
+  // Maintain navigation block state based on user's progress
+  useEffect(() => {
+    // Always unblock if submitted or not started
+    if (!hasStarted || hasSubmitted) {
+      setBlockNavigation(false);
+      setOnTryNavigate(null);
+    }
+    // Cleanup when unmounting
+    return () => {
+      setBlockNavigation(false);
+      setOnTryNavigate(null);
+    };
+  }, [hasStarted, hasSubmitted, setBlockNavigation, setOnTryNavigate]);
 
   // Load starter code & welcome message when problem changes
   useEffect(() => {
@@ -192,11 +206,20 @@ const InterviewPage: React.FC = () => {
 
 
   // Handler tombol Start
-  const handleStart = () => {
+  const handleStart = useCallback(() => {
     setHasStarted(true);
     setIsActive(true);
     setTimer(0);
-  };
+    // Jika di mobile, langsung tampilkan editor
+    if (window.innerWidth < 1024) {
+      setShowDescription(false);
+    }
+    // Set block navigation immediately when user starts
+    setBlockNavigation(true);
+    setOnTryNavigate(async () => {
+      return window.confirm(t("confirmLeaveMessage", "Kamu belum submit jawaban. Apakah yakin ingin keluar?"));
+    });
+  }, [setBlockNavigation, setOnTryNavigate, t]);
 
   // Handler tombol Submit
   const handleSubmit = () => {
@@ -212,25 +235,69 @@ const InterviewPage: React.FC = () => {
         date: new Date().toISOString(),
       })
     );
+    // Setelah submit dan user konfirmasi mengakhiri sesi, unblock navigation
+    setBlockNavigation(false);
+    setOnTryNavigate(null);
   };
+
+  const [showConfirm, setShowConfirm] = useState(false);
+const [pendingNavigation, setPendingNavigation] = useState<null | (() => void)>(null);
 
   if (!currentProblem) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="max-w-full mx-auto h-screen flex flex-col">
+    <div className="max-w-full mx-auto h-screen flex flex-col px-2 sm:px-4 bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b px-6 py-4">
+  <div className="bg-white border-b px-3 sm:px-6 py-3 sm:py-4">
         {/* Language switcher removed, already present in navbar */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
-              onClick={() => navigate("/problems")}
-              className="text-gray-600 hover:text-gray-800"
+              onClick={() => {
+                if (!hasSubmitted) {
+                  setShowConfirm(true);
+                  setPendingNavigation(() => () => navigate("/problems"));
+                } else {
+                  navigate("/problems");
+                }
+              }}
+              className="text-gray-600 hover:text-gray-800 min-h-[36px] min-w-[100px] px-2 py-1 rounded"
+              disabled={!hasSubmitted}
+              style={!hasSubmitted ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
             >
               ← Back to Problems
             </button>
+      {/* Confirm Leave Modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full">
+            <h2 className="text-lg font-semibold mb-4">{t("confirmLeaveTitle", "Keluar dari soal?")}</h2>
+            <p className="mb-6">{t("confirmLeaveMessage", "Kamu belum submit jawaban. Apakah yakin ingin keluar?")}</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                onClick={() => {
+                  setShowConfirm(false);
+                  setPendingNavigation(null);
+                }}
+              >
+                {t("cancel", "Batal")}
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                onClick={() => {
+                  setShowConfirm(false);
+                  if (pendingNavigation) pendingNavigation();
+                }}
+              >
+                {t("leaveAnyway", "Keluar")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
             <h1 className="text-xl font-semibold text-gray-900">
               {currentProblem.title[lang]}
             </h1>
@@ -246,11 +313,11 @@ const InterviewPage: React.FC = () => {
               {currentProblem.difficulty}
             </span>
           </div>
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center gap-2 sm:gap-6">
             <Timer timer={timer} />
             <button
               onClick={() => setShowAiPanel(!showAiPanel)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex items-center gap-2 px-3 py-2 min-h-[36px] min-w-[100px] rounded-lg transition-colors text-base ${
                 showAiPanel
                   ? "bg-primary-600 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -264,18 +331,45 @@ const InterviewPage: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Problem Description */}
-        <div className="w-1/2 bg-white border-r overflow-y-auto">
+  <div className="flex-1 flex flex-col lg:flex-row overflow-hidden gap-2">
+        {/* Header Controls for Mobile */}
+  <div className="lg:hidden flex items-center justify-between p-2 border-b bg-white">
+          <button
+            onClick={() => setShowDescription(!showDescription)}
+            className="px-4 py-2 min-h-[36px] min-w-[100px] bg-gray-100 rounded-lg font-medium text-gray-700 hover:bg-gray-200 text-base"
+          >
+            {showDescription ? t("showEditor") : t("showProblem")}
+          </button>
+          <div className="flex items-center gap-2">
+            <Timer timer={timer} />
+            <button
+              onClick={() => setShowAiPanel(!showAiPanel)}
+              className={`flex items-center gap-2 px-3 py-2 min-h-[36px] min-w-[36px] rounded-lg transition-colors text-base ${
+                showAiPanel
+                  ? "bg-primary-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <Brain className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Problem Description - Full width on mobile when shown */}
+        <div className={`${
+          showDescription ? 'block' : 'hidden'
+        } lg:block lg:w-1/2 bg-white border-r overflow-y-auto w-full max-w-full`}>
           <ProblemDescription problem={currentProblem} />
         </div>
 
         {/* Code Editor & Results, hanya tampil jika sudah mulai */}
-        <div className="w-1/2 flex flex-col relative">
+        <div className={`${
+          !showDescription ? 'block' : 'hidden'
+        } lg:block lg:w-1/2 flex flex-col relative w-full max-w-full`}>
           {!hasStarted && !hasSubmitted && (
-            <div className="flex flex-col items-center justify-center h-full">
+            <div className="flex flex-col items-center justify-center h-full p-4">
               <button
-                className="px-8 py-3 bg-primary-600 text-white rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors"
+                className="w-full max-w-sm px-8 py-3 min-h-[44px] bg-primary-600 text-white rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors"
                 onClick={handleStart}
               >
                 {t("start")}
@@ -284,7 +378,7 @@ const InterviewPage: React.FC = () => {
           )}
           {(hasStarted || hasSubmitted) && (
             <>
-              <div className="flex-1 p-6">
+              <div className="flex-1 p-2 sm:p-4 md:p-6">
                 <CodeEditor
                   initialCode={code}
                   language={language}
@@ -297,18 +391,47 @@ const InterviewPage: React.FC = () => {
               </div>
               <TestResults testResults={testResults} />
               {!hasSubmitted && (
-                <div className="p-6 border-t flex justify-end">
-                  <button
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
-                    onClick={handleSubmit}
-                  >
-                    {t("submit")}
-                  </button>
+                <div className="p-4 sm:p-6 border-t flex flex-col items-end gap-2">
+                  <div className="flex gap-2 w-full">
+                    <button
+                      className={`flex-1 px-4 py-2 min-h-[40px] rounded-lg font-semibold transition-colors text-base ${testResults.length > 0 && testResults.every(r => r.passed) ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                      onClick={() => {
+                        if (testResults.length > 0 && testResults.every(r => r.passed)) handleSubmit();
+                      }}
+                      disabled={!(testResults.length > 0 && testResults.every(r => r.passed))}
+                    >
+                      {t("submit")}
+                    </button>
+                    <button
+                      className="flex-1 px-4 py-2 min-h-[40px] bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors text-base"
+                      onClick={() => {
+                        if (window.confirm(t('confirmEndAnyway', 'Jawabanmu belum benar. Akhiri dan submit sebagai gagal?'))) {
+                          handleSubmit();
+                        }
+                      }}
+                    >
+                      {t('finishAnyway', 'Akhiri')}
+                    </button>
+                  </div>
                 </div>
               )}
               {hasSubmitted && (
-                <div className="p-6 border-t text-green-700 font-semibold text-center">
-                  {t("submittedMessage")}
+                <div className="p-4 sm:p-6 border-t flex flex-col items-center gap-2">
+                  <div className="text-green-700 font-semibold text-center">
+                    {t("submittedMessage")}
+                  </div>
+                  <button
+                    className="px-6 py-2 min-h-[40px] bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-base"
+                    onClick={() => {
+                      setHasSubmitted(false);
+                      setHasStarted(true);
+                      setIsActive(true);
+                      setTimer(0);
+                      setTestResults([]);
+                    }}
+                  >
+                    {t('resubmit', 'Resubmit')}
+                  </button>
                 </div>
               )}
             </>

@@ -15,6 +15,7 @@ import ProblemsPage from './pages/ProblemsPage';
 // Components
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import { NavigationBlockProvider } from './contexts/NavigationBlockContext';
 
 // Loading component
 const LoadingScreen: React.FC = () => (
@@ -62,11 +63,14 @@ const AppContent: React.FC = () => {
   );
 };
 
+
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <AppContent />
+        <NavigationBlockProvider>
+          <AppContent />
+        </NavigationBlockProvider>
       </Router>
     </AuthProvider>
   );

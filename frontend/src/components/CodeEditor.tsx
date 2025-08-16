@@ -79,17 +79,17 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   return (
     <div
       className={`bg-white rounded-lg border shadow-sm ${
-        isFullscreen ? "fixed inset-4 z-50" : "h-96"
+        isFullscreen ? "fixed inset-0 z-50" : "h-[calc(100vh-16rem)] lg:h-96"
       }`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50 rounded-t-lg">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-wrap gap-2 items-center justify-between p-2 sm:p-3 border-b bg-gray-50 rounded-t-lg">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           {/* Language Selector */}
           <select
             value={language}
             onChange={(e) => onLanguageChange(e.target.value as Language)}
-            className="px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-32 px-2 sm:px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
             disabled={readOnly}
           >
             {languageOptions.map((lang) => (
