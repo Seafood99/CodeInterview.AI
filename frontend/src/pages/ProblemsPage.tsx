@@ -11,18 +11,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
-interface Problem {
-  id: number;
-  title: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  category: string;
-  solved: boolean;
-  acceptance: number;
-  estimatedTime: string;
-  description: string;
-  tags: string[];
-}
+import PROBLEMS from "../data/problemsData";
 
 const ProblemsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -31,80 +20,20 @@ const ProblemsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Mock problems data
-  const problems: Problem[] = [
-    {
-      id: 1,
-      title: "Two Sum",
-      difficulty: "Easy",
-      category: "Arrays",
-      solved: true,
-      acceptance: 85,
-      estimatedTime: "5-10 min",
-      description:
-        "Given an array of integers nums and an integer target, return indices of two numbers that add up to target.",
-      tags: ["Array", "Hash Table"],
-    },
-    {
-      id: 2,
-      title: "Add Two Numbers",
-      difficulty: "Medium",
-      category: "Linked Lists",
-      solved: false,
-      acceptance: 72,
-      estimatedTime: "15-20 min",
-      description:
-        "Add two numbers represented as linked lists and return the sum as a linked list.",
-      tags: ["Linked List", "Math"],
-    },
-    {
-      id: 3,
-      title: "Longest Substring Without Repeating Characters",
-      difficulty: "Medium",
-      category: "Strings",
-      solved: true,
-      acceptance: 68,
-      estimatedTime: "10-15 min",
-      description:
-        "Find the length of the longest substring without repeating characters.",
-      tags: ["String", "Sliding Window", "Hash Table"],
-    },
-    {
-      id: 4,
-      title: "Median of Two Sorted Arrays",
-      difficulty: "Hard",
-      category: "Arrays",
-      solved: false,
-      acceptance: 45,
-      estimatedTime: "25-30 min",
-      description:
-        "Find the median of two sorted arrays with optimal time complexity.",
-      tags: ["Array", "Binary Search", "Divide and Conquer"],
-    },
-    {
-      id: 5,
-      title: "Valid Parentheses",
-      difficulty: "Easy",
-      category: "Stacks",
-      solved: true,
-      acceptance: 89,
-      estimatedTime: "5-8 min",
-      description: "Determine if the input string has valid parentheses.",
-      tags: ["String", "Stack"],
-    },
-    {
-      id: 6,
-      title: "Binary Tree Inorder Traversal",
-      difficulty: "Easy",
-      category: "Trees",
-      solved: false,
-      acceptance: 78,
-      estimatedTime: "8-12 min",
-      description:
-        "Return the inorder traversal of a binary tree's node values.",
-      tags: ["Tree", "Depth-First Search", "Binary Tree"],
-    },
-  ];
+  const lang = i18n.language === 'id' ? 'id' : 'en';
+  const problems = PROBLEMS.map((p) => {
+    const solved = !!localStorage.getItem(`ci_solved_${p.id}`);
+    // Dummy acceptance and estimatedTime for demo
+    return {
+      ...p,
+      solved,
+      acceptance: 80,
+      estimatedTime: "10-20 min",
+      tags: p.tags || [],
+      title: p.title[lang],
+      description: p.description[lang],
+    };
+  });
 
   const categories = [
     "Arrays",
@@ -243,16 +172,16 @@ const ProblemsPage: React.FC = () => {
             key={problem.id}
             className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
           >
-            <div className="p-6">
+            <div className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
+                  <div className="flex items-center space-x-2 mb-1">
                     {problem.solved ? (
                       <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                     ) : (
                       <Circle className="h-5 w-5 text-gray-400 flex-shrink-0" />
                     )}
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-base font-semibold text-gray-900">
                       {problem.title}
                     </h3>
                     <span
@@ -264,11 +193,11 @@ const ProblemsPage: React.FC = () => {
                     </span>
                   </div>
 
-                  <p className="text-gray-600 mb-3 line-clamp-2">
+                  <p className="text-gray-600 mb-2 text-sm line-clamp-2">
                     {problem.description}
                   </p>
 
-                  <div className="flex items-center space-x-6 text-sm text-gray-500">
+                  <div className="flex items-center space-x-4 text-xs text-gray-500">
                     <div className="flex items-center space-x-1">
                       <Code className="h-4 w-4" />
                       <span>{problem.category}</span>
@@ -284,7 +213,7 @@ const ProblemsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-1 mt-3">
+                  <div className="flex flex-wrap gap-1 mt-2">
                     {problem.tags.map((tag) => (
                       <span
                         key={tag}
@@ -296,16 +225,16 @@ const ProblemsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="ml-6 flex flex-col space-y-2">
+                <div className="ml-4 flex flex-col space-y-1 items-end min-w-[110px]">
                   <Link
                     to={`/interview/${problem.id}`}
-                    className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium text-center"
+                    className="bg-primary-600 text-white px-3 py-1.5 rounded-md hover:bg-primary-700 transition-colors text-xs font-medium text-center min-w-[90px]"
                   >
                     {problem.solved
                       ? t("problems.solveAgain")
                       : t("problems.startSolving")}
                   </Link>
-                  <button className="flex items-center space-x-1 text-primary-600 hover:text-primary-700 text-sm">
+                  <button className="flex items-center space-x-1 text-primary-600 hover:text-primary-700 text-xs">
                     <Brain className="h-4 w-4" />
                     <span>{t("problems.aiHints")}</span>
                   </button>

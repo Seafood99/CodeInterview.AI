@@ -95,5 +95,8 @@
   "language": "Bahasa",
   "theme": "Tema",
   "dark": "Gelap",
-  "light": "Terang"
+  "light": "Terang",
+  "start": "Mulai",
+  "submit": "Submit",
+  "submittedMessage": "Soal sudah disubmit! Kamu bisa melihat hasilnya di dashboard."
 }

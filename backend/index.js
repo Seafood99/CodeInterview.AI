@@ -26,6 +26,101 @@ const replicate = process.env.REPLICATE_API_TOKEN
 let users = [];
 let submissions = [];
 
+// Helper: generate prompt untuk Granite
+function getQuickQuestionPrompt() {
+    return `Buatkan 1 soal pilihan ganda algoritma/pemrograman sederhana, format JSON:\n{\n  "question": "Pertanyaannya...",\n  "options": ["opsi1", "opsi2", "opsi3", "opsi4"],\n  "answer": 2 // index jawaban benar\n}`;
+}
+
+// Endpoint: GET /api/quick-question
+app.get('/api/quick-question', async (req, res) => {
+    const dummy = {
+        id: Date.now().toString(),
+        question: "What is the output of the following code?\nconsole.log(2 + '2');",
+        options: ["4", "22", "'4'", "NaN"],
+        answer: 1,
+        aiStatus: 'fallback',
+        aiLog: null
+    };
+    try {
+        if (!replicate) {
+            return res.json(dummy);
+        }
+        const prompt = getQuickQuestionPrompt();
+        const model = process.env.GRANITE_MODEL || 'ibm-granite/granite-3.0-8b-instruct';
+        const input = {
+            prompt,
+            system: 'You are an AI coding assistant. Output only valid JSON.',
+            temperature: 0.7,
+            max_tokens: 300
+        };
+        const output = await replicate.run(model, { input });
+        const text = Array.isArray(output) ? output.join('') : String(output);
+        // Log Granite response
+        console.log('[Granite QuickQuestion]', text);
+        let q;
+        try {
+            q = JSON.parse(text);
+        } catch (e) {
+            const match = text.match(/\{[\s\S]*\}/);
+            if (match) q = JSON.parse(match[0]);
+            else throw e;
+        }
+        q.id = Date.now().toString();
+        q.aiStatus = 'powered';
+        q.aiLog = text;
+        res.json(q);
+    } catch (err) {
+        console.error('Granite quick-question error:', err);
+        dummy.aiLog = String(err);
+        res.json(dummy);
+    }
+});
+
+// Endpoint: GET /api/quick-question/:id (dummy, generate ulang)
+app.get('/api/quick-question/:id', async (req, res) => {
+    const dummy = {
+        id: req.params.id,
+        question: "What is the output of the following code?\nconsole.log(2 + '2');",
+        options: ["4", "22", "'4'", "NaN"],
+        answer: 1,
+        aiStatus: 'fallback',
+        aiLog: null
+    };
+    try {
+        if (!replicate) {
+            return res.json(dummy);
+        }
+        const prompt = getQuickQuestionPrompt();
+        const model = process.env.GRANITE_MODEL || 'ibm-granite/granite-3.0-8b-instruct';
+        const input = {
+            prompt,
+            system: 'You are an AI coding assistant. Output only valid JSON.',
+            temperature: 0.7,
+            max_tokens: 300
+        };
+        const output = await replicate.run(model, { input });
+        const text = Array.isArray(output) ? output.join('') : String(output);
+        // Log Granite response
+        console.log('[Granite QuickQuestion]', text);
+        let q;
+        try {
+            q = JSON.parse(text);
+        } catch (e) {
+            const match = text.match(/\{[\s\S]*\}/);
+            if (match) q = JSON.parse(match[0]);
+            else throw e;
+        }
+        q.id = req.params.id;
+        q.aiStatus = 'powered';
+        q.aiLog = text;
+        res.json(q);
+    } catch (err) {
+        console.error('Granite quick-question error:', err);
+        dummy.aiLog = String(err);
+        res.json(dummy);
+    }
+});
+
 // Routes
 app.get('/', (req, res) => {
     res.json({

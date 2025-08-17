@@ -95,5 +95,8 @@
   "language": "Language",
   "theme": "Theme",
   "dark": "Dark",
-  "light": "Light"
+  "light": "Light",
+  "start": "Start",
+  "submit": "Submit",
+  "submittedMessage": "Problem has been submitted! You can view your results on the dashboard."
 }

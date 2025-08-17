@@ -11,10 +11,13 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import InterviewPage from './pages/InterviewPage';
 import ProblemsPage from './pages/ProblemsPage';
+import QuickQuestionDetail from './pages/QuickQuestionDetail';
 
 // Components
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import { NavigationBlockProvider } from './contexts/NavigationBlockContext';
 
 // Loading component
 const LoadingScreen: React.FC = () => (
@@ -35,9 +38,9 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-1">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -56,17 +59,22 @@ const AppContent: React.FC = () => {
               <InterviewPage />
             </ProtectedRoute>
           } />
+          <Route path="/quick-question/:id" element={<QuickQuestionDetail />} />
         </Routes>
       </main>
+      <Footer />
     </div>
   );
 };
+
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <AppContent />
+        <NavigationBlockProvider>
+          <AppContent />
+        </NavigationBlockProvider>
       </Router>
     </AuthProvider>
   );

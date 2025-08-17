@@ -1,368 +1,33 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
-
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  Clock,
-  Brain,
-  MessageSquare,
-  Play,
-  CheckCircle,
-  XCircle,
-  Send,
-  Lightbulb,
-  Code,
-  Zap,
-  Bug,
-} from "lucide-react";
+import { Clock, Brain } from "lucide-react";
 import CodeEditor from "../components/CodeEditor";
-import { AIService } from "../services/aiServices";
+import ProblemDescription from "../components/ProblemDescription";
+import TestResults from "../components/TestResults";
+import Timer from "../components/Timer";
+import AIAssistantPanel from "../components/AIAssistantPanel";
 import { Language, Problem, TestResult } from "../types/interview";
 import { API_BASE_URL } from "../config";
-
-// PROBLEMS DATA - lengkap dengan 6 problems
-const PROBLEMS = [
-  {
-    id: 1,
-    title: "Two Sum",
-    difficulty: "Easy",
-    category: "Arrays",
-    description:
-      "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.",
-    examples: [
-      {
-        input: "nums = [2,7,11,15], target = 9",
-        output: "[0,1]",
-        explanation: "Because nums[0] + nums[1] == 9, we return [0, 1].",
-      },
-    ],
-    constraints: [
-      "2 ≤ nums.length ≤ 10⁴",
-      "-10⁹ ≤ nums[i] ≤ 10⁹",
-      "-10⁹ ≤ target ≤ 10⁹",
-    ],
-    initialCode: `function twoSum(nums, target) {
-    // Your solution here
-    
-}`,
-    solution: `function twoSum(nums, target) {
-    const map = new Map();
-    
-    for (let i = 0; i < nums.length; i++) {
-        const complement = target - nums[i];
-        if (map.has(complement)) {
-            return [map.get(complement), i];
-        }
-        map.set(nums[i], i);
-    }
-    
-    return [];
-}`,
-    testCases: [
-      { input: [[2, 7, 11, 15], 9], expected: [0, 1] },
-      { input: [[3, 2, 4], 6], expected: [1, 2] },
-      { input: [[3, 3], 6], expected: [0, 1] },
-    ],
-    hints: [
-      "Think about using a hash map to store numbers you've seen",
-      "For each number, check if its complement (target - current) exists in the map",
-      "The complement approach gives you O(n) time complexity",
-    ],
-    timeComplexity: "O(n)",
-    spaceComplexity: "O(n)",
-  },
-  {
-    id: 2,
-    title: "Valid Parentheses",
-    difficulty: "Easy",
-    category: "Stack",
-    description:
-      "Given a string s containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.",
-    examples: [
-      {
-        input: 's = "()"',
-        output: "true",
-        explanation: "The parentheses are properly matched.",
-      },
-      {
-        input: 's = "()[]{}"',
-        output: "true",
-        explanation: "All brackets are properly matched.",
-      },
-      {
-        input: 's = "(]"',
-        output: "false",
-        explanation: "The brackets are not properly matched.",
-      },
-    ],
-    constraints: [
-      "1 ≤ s.length ≤ 10⁴",
-      "s consists of parentheses only '()[]{}'.",
-    ],
-    initialCode: `function isValid(s) {
-    // Your solution here
-    
-}`,
-    solution: `function isValid(s) {
-    const stack = [];
-    const pairs = { ')': '(', '}': '{', ']': '[' };
-    
-    for (let char of s) {
-        if (char === '(' || char === '{' || char === '[') {
-            stack.push(char);
-        } else {
-            if (stack.length === 0 || stack.pop() !== pairs[char]) {
-                return false;
-            }
-        }
-    }
-    
-    return stack.length === 0;
-}`,
-    testCases: [
-      { input: ["()"], expected: true },
-      { input: ["()[]{}"], expected: true },
-      { input: ["(]"], expected: false },
-      { input: ["([)]"], expected: false },
-    ],
-    hints: [
-      "Use a stack data structure to keep track of opening brackets",
-      "When you see a closing bracket, check if it matches the most recent opening bracket",
-      "Make sure the stack is empty at the end",
-    ],
-    timeComplexity: "O(n)",
-    spaceComplexity: "O(n)",
-  },
-  {
-    id: 3,
-    title: "Reverse Linked List",
-    difficulty: "Easy",
-    category: "Linked List",
-    description:
-      "Given the head of a singly linked list, reverse the list, and return the reversed list.",
-    examples: [
-      {
-        input: "head = [1,2,3,4,5]",
-        output: "[5,4,3,2,1]",
-        explanation: "The linked list is reversed.",
-      },
-    ],
-    constraints: [
-      "The number of nodes in the list is the range [0, 5000].",
-      "-5000 ≤ Node.val ≤ 5000",
-    ],
-    initialCode: `// Definition for singly-linked list.
-function ListNode(val, next) {
-    this.val = (val===undefined ? 0 : val)
-    this.next = (next===undefined ? null : next)
-}
-
-function reverseList(head) {
-    // Your solution here
-    
-}`,
-    solution: `function reverseList(head) {
-    let prev = null;
-    let current = head;
-    
-    while (current !== null) {
-        let next = current.next;
-        current.next = prev;
-        prev = current;
-        current = next;
-    }
-    
-    return prev;
-}`,
-    testCases: [
-      { input: [[1, 2, 3, 4, 5]], expected: [5, 4, 3, 2, 1] },
-      { input: [[1, 2]], expected: [2, 1] },
-      { input: [[]], expected: [] },
-    ],
-    hints: [
-      "You need to reverse the direction of pointers",
-      "Keep track of previous, current, and next nodes",
-      "Iteratively reverse each link",
-    ],
-    timeComplexity: "O(n)",
-    spaceComplexity: "O(1)",
-  },
-  {
-    id: 4,
-    title: "Maximum Subarray",
-    difficulty: "Medium",
-    category: "Dynamic Programming",
-    description:
-      "Given an integer array nums, find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.",
-    examples: [
-      {
-        input: "nums = [-2,1,-3,4,-1,2,1,-5,4]",
-        output: "6",
-        explanation: "[4,-1,2,1] has the largest sum = 6.",
-      },
-    ],
-    constraints: ["1 ≤ nums.length ≤ 10⁵", "-10⁴ ≤ nums[i] ≤ 10⁴"],
-    initialCode: `function maxSubArray(nums) {
-    // Your solution here
-    
-}`,
-    solution: `function maxSubArray(nums) {
-    let maxSoFar = nums[0];
-    let maxEndingHere = nums[0];
-    
-    for (let i = 1; i < nums.length; i++) {
-        maxEndingHere = Math.max(nums[i], maxEndingHere + nums[i]);
-        maxSoFar = Math.max(maxSoFar, maxEndingHere);
-    }
-    
-    return maxSoFar;
-}`,
-    testCases: [
-      { input: [[-2, 1, -3, 4, -1, 2, 1, -5, 4]], expected: 6 },
-      { input: [[1]], expected: 1 },
-      { input: [[5, 4, -1, 7, 8]], expected: 23 },
-    ],
-    hints: [
-      "This is Kadane's algorithm - a classic DP problem",
-      "At each position, decide whether to extend the previous subarray or start a new one",
-      "Keep track of the maximum sum seen so far",
-    ],
-    timeComplexity: "O(n)",
-    spaceComplexity: "O(1)",
-  },
-  {
-    id: 5,
-    title: "Binary Tree Inorder Traversal",
-    difficulty: "Easy",
-    category: "Trees",
-    description:
-      "Given the root of a binary tree, return the inorder traversal of its nodes' values.",
-    examples: [
-      {
-        input: "root = [1,null,2,3]",
-        output: "[1,3,2]",
-        explanation: "Inorder traversal visits left, root, right.",
-      },
-    ],
-    constraints: [
-      "The number of nodes in the tree is in the range [0, 100].",
-      "-100 ≤ Node.val ≤ 100",
-    ],
-    initialCode: `// Definition for a binary tree node.
-function TreeNode(val, left, right) {
-    this.val = (val===undefined ? 0 : val)
-    this.left = (left===undefined ? null : left)
-    this.right = (right===undefined ? null : right)
-}
-
-function inorderTraversal(root) {
-    // Your solution here
-    
-}`,
-    solution: `function inorderTraversal(root) {
-    const result = [];
-    
-    function inorder(node) {
-        if (node === null) return;
-        
-        inorder(node.left);
-        result.push(node.val);
-        inorder(node.right);
-    }
-    
-    inorder(root);
-    return result;
-}`,
-    testCases: [
-      { input: [[1, null, 2, 3]], expected: [1, 3, 2] },
-      { input: [[]], expected: [] },
-      { input: [[1]], expected: [1] },
-    ],
-    hints: [
-      "Inorder traversal follows: Left → Root → Right pattern",
-      "Use recursion or a stack-based iterative approach",
-      "Base case: if node is null, return",
-    ],
-    timeComplexity: "O(n)",
-    spaceComplexity: "O(h)",
-  },
-  {
-    id: 6,
-    title: "3Sum",
-    difficulty: "Medium",
-    category: "Arrays",
-    description:
-      "Given an integer array nums, return all the triplets [nums[i], nums[j], nums[k]] such that i != j, i != k, and j != k, and nums[i] + nums[j] + nums[k] == 0.",
-    examples: [
-      {
-        input: "nums = [-1,0,1,2,-1,-4]",
-        output: "[[-1,-1,2],[-1,0,1]]",
-        explanation: "The distinct triplets are [-1,-1,2] and [-1,0,1].",
-      },
-    ],
-    constraints: ["3 ≤ nums.length ≤ 3000", "-10⁵ ≤ nums[i] ≤ 10⁵"],
-    initialCode: `function threeSum(nums) {
-    // Your solution here
-    
-}`,
-    solution: `function threeSum(nums) {
-    nums.sort((a, b) => a - b);
-    const result = [];
-    
-    for (let i = 0; i < nums.length - 2; i++) {
-        if (i > 0 && nums[i] === nums[i - 1]) continue;
-        
-        let left = i + 1;
-        let right = nums.length - 1;
-        
-        while (left < right) {
-            const sum = nums[i] + nums[left] + nums[right];
-            
-            if (sum === 0) {
-                result.push([nums[i], nums[left], nums[right]]);
-                
-                while (left < right && nums[left] === nums[left + 1]) left++;
-                while (left < right && nums[right] === nums[right - 1]) right--;
-                
-                left++;
-                right--;
-            } else if (sum < 0) {
-                left++;
-            } else {
-                right--;
-            }
-        }
-    }
-    
-    return result;
-}`,
-    testCases: [
-      {
-        input: [[-1, 0, 1, 2, -1, -4]],
-        expected: [
-          [-1, -1, 2],
-          [-1, 0, 1],
-        ],
-      },
-      { input: [[0, 1, 1]], expected: [] },
-      { input: [[0, 0, 0]], expected: [[0, 0, 0]] },
-    ],
-    hints: [
-      "Sort the array first to make it easier to avoid duplicates",
-      "Use two pointers approach after fixing the first element",
-      "Skip duplicate values to avoid duplicate triplets",
-    ],
-    timeComplexity: "O(n²)",
-    spaceComplexity: "O(1)",
-  },
-];
+import { useTimer } from "../hooks/useTimer";
+import { useAIAssistant } from "../hooks/useAIAssistant";
+import PROBLEMS from "../data/problemsData";
+import { useNavigationBlock } from "../contexts/NavigationBlockContext";
 
 const InterviewPage: React.FC = () => {
+  // Navigation block context
+  const { setBlockNavigation, setOnTryNavigate } = useNavigationBlock();
+
+  // Language state for code editor
+  const [language, setLanguage] = useState<Language>("javascript");
+  // Test results state
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
+  // Code running state
+  const [isRunning, setIsRunning] = useState(false);
   const { id } = useParams<{ id: string }>();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
-  // Simpan code per bahasa agar tidak hilang saat ganti bahasa
+  // State
   const [codeMap, setCodeMap] = useState<{ [lang in Language]: string }>({
     javascript: "",
     python: "",
@@ -370,83 +35,46 @@ const InterviewPage: React.FC = () => {
     cpp: "",
   });
   const [code, setCode] = useState("");
-  const [language, setLanguage] = useState<Language>("javascript");
-  const [isRunning, setIsRunning] = useState(false);
-  const [testResults, setTestResults] = useState<TestResult[]>([]);
-  const [timer, setTimer] = useState(0);
-  const [isActive, setIsActive] = useState(true);
-
+  const [hasStarted, setHasStarted] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [isActive, setIsActive] = useState(false);
+  const [timer, setTimer] = useTimer(isActive);
+  // Get current problem by id
+  const currentProblem = PROBLEMS.find((p) => p.id === Number(id)) || null;
+  const lang = i18n.language === 'id' ? 'id' : 'en';
   // AI Chat States
-  const [aiMessages, setAiMessages] = useState<
-    Array<{ id: string; type: "user" | "ai"; content: string; timestamp: Date }>
-  >([]);
-  const [userMessage, setUserMessage] = useState("");
-  const [isAiThinking, setIsAiThinking] = useState(false);
   const [showAiPanel, setShowAiPanel] = useState(false);
+  // Mobile view state
+  const [showDescription, setShowDescription] = useState(true);
+  const {
+    aiMessages,
+    setAiMessages,
+    userMessage,
+    setUserMessage,
+    isAiThinking,
+    handleSendMessage,
+    handleQuickAction,
+  } = useAIAssistant(currentProblem, code, language);
 
-  const aiService = AIService.getInstance();
-
-  // Convert PROBLEMS data ke format yang sesuai InterviewPage
-  const mockProblems: { [key: string]: Problem } = {};
-
-  PROBLEMS.forEach((problem) => {
-    mockProblems[problem.id.toString()] = {
-      id: problem.id,
-      title: problem.title,
-      difficulty: problem.difficulty as "Easy" | "Medium" | "Hard",
-      category: problem.category,
-      description: problem.description,
-      examples: problem.examples,
-      constraints: problem.constraints,
-      hints: problem.hints,
-      starterCode: {
-        javascript: problem.initialCode,
-        python: `def solution():
-    # Your code here
-    pass`,
-        java: `public class Solution {
-    // Your code here
-    
-}`,
-        cpp: `class Solution {
-public:
-    // Your code here
-    
-};`,
-      },
-      testCases: problem.testCases.map((tc) => ({
-        input: Array.isArray(tc.input) ? tc.input : [tc.input],
-        expectedOutput: Array.isArray(tc.expected)
-          ? tc.expected
-          : [tc.expected],
-        description: `Test case with input: ${JSON.stringify(tc.input)}`,
-      })),
-      solution: problem.solution,
-      tags: [problem.category],
-    };
-  });
-
-  // Timer effect
-  // Timer effect
+  // Maintain navigation block state based on user's progress
   useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
-    if (isActive) {
-      interval = setInterval(() => {
-        setTimer((t) => t + 1);
-      }, 1000);
+    // Always unblock if submitted or not started
+    if (!hasStarted || hasSubmitted) {
+      setBlockNavigation(false);
+      setOnTryNavigate(null);
     }
+    // Cleanup when unmounting
     return () => {
-      if (interval) clearInterval(interval);
+      setBlockNavigation(false);
+      setOnTryNavigate(null);
     };
-  }, [isActive]);
+  }, [hasStarted, hasSubmitted, setBlockNavigation, setOnTryNavigate]);
 
-  // Load problem
-  // Load problem & starter code per bahasa
+  // Load starter code & welcome message when problem changes
   useEffect(() => {
-    if (id && mockProblems[id]) {
-      setCurrentProblem(mockProblems[id]);
+    if (currentProblem) {
       setCodeMap((prev) => {
-        const starter = mockProblems[id].starterCode;
+        const starter = currentProblem.starterCode;
         return {
           javascript: prev.javascript || starter.javascript,
           python: prev.python || starter.python,
@@ -454,18 +82,21 @@ public:
           cpp: prev.cpp || starter.cpp,
         };
       });
-      setCode((prev) => prev || mockProblems[id].starterCode[language]);
-      // Welcome AI message hanya saat problem berubah
+      setCode((prev) => prev || currentProblem.starterCode[language]);
       setAiMessages([
         {
           id: "ai-welcome",
           type: "ai",
-          content: `👋 Hi! I'm your AI assistant powered by IBM Granite. I'm here to help you solve "${mockProblems[id].title}". \n\nFeel free to ask me for:\n• 💡 Hints to get started\n• 🔍 Code explanations  \n• 🐛 Debugging help\n• ⚡ Optimization suggestions\n\nGood luck! 🚀`,
+          content: `👋 Hi! I'm your AI assistant powered by IBM Granite. I'm here to help you solve "${currentProblem.title}". \n\nFeel free to ask me for:\n• 💡 Hints to get started\n• 🔍 Code explanations  \n• 🐛 Debugging help\n• ⚡ Optimization suggestions\n\nGood luck! 🚀`,
           timestamp: new Date(),
         },
       ]);
+      // Cek localStorage untuk status soal
+      const solved = localStorage.getItem(`ci_solved_${currentProblem.id}`);
+      setHasSubmitted(!!solved);
+      setHasStarted(!!solved); // Jika sudah submit, anggap sudah mulai
     }
-  }, [id]);
+  }, [id, currentProblem, setAiMessages]);
 
   // Update code saat ganti bahasa
   useEffect(() => {
@@ -475,11 +106,7 @@ public:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language, currentProblem]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
+  // formatTime now handled by Timer component
 
   const handleCodeChange = useCallback(
     (newCode: string) => {
@@ -519,7 +146,7 @@ public:
     setTestResults([]);
 
     try {
-      const functionName = getFunctionNameForProblem(currentProblem.title);
+  const functionName = getFunctionNameForProblem(currentProblem.title[lang]);
 
       // Build test cases payload in backend format
       const payloadTestCases = currentProblem.testCases.map((tc) => ({
@@ -577,142 +204,106 @@ public:
     }
   }, [currentProblem, code, language]);
 
-  const handleSendMessage = useCallback(async () => {
-    if (!userMessage.trim()) return;
 
-    const newUserMessage = {
-      id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      type: "user" as const,
-      content: userMessage,
-      timestamp: new Date(),
-    };
-
-    setAiMessages((prev) => [...prev, newUserMessage]);
-    setUserMessage("");
-    setIsAiThinking(true);
-
-    try {
-      let aiResponse = "";
-
-      if (userMessage.toLowerCase().includes("hint")) {
-        aiResponse = await aiService.getHint(
-          currentProblem?.id || 1,
-          code,
-          language
-        );
-      } else if (userMessage.toLowerCase().includes("explain")) {
-        aiResponse = await aiService.explainCode(code, language);
-      } else if (
-        userMessage.toLowerCase().includes("debug") ||
-        userMessage.toLowerCase().includes("error")
-      ) {
-        aiResponse = await aiService.debugCode(
-          code,
-          "General debugging request",
-          language
-        );
-      } else if (userMessage.toLowerCase().includes("optimize")) {
-        aiResponse = await aiService.optimizeCode(code, language);
-      } else {
-        aiResponse = await aiService.chat(
-          userMessage,
-          code,
-          language,
-          currentProblem?.title
-        );
-      }
-
-      const aiResponseMessage = {
-        id: `ai-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        type: "ai" as const,
-        content: aiResponse,
-        timestamp: new Date(),
-      };
-
-      setAiMessages((prev) => [...prev, aiResponseMessage]);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error("AI Error:", error);
-    } finally {
-      setIsAiThinking(false);
+  // Handler tombol Start
+  const handleStart = useCallback(() => {
+    setHasStarted(true);
+    setIsActive(true);
+    setTimer(0);
+    // Jika di mobile, langsung tampilkan editor
+    if (window.innerWidth < 1024) {
+      setShowDescription(false);
     }
-  }, [userMessage, aiService, currentProblem, code, language]);
+    // Set block navigation immediately when user starts
+    setBlockNavigation(true);
+    setOnTryNavigate(async () => {
+      return window.confirm(t("confirmLeaveMessage", "Kamu belum submit jawaban. Apakah yakin ingin keluar?"));
+    });
+  }, [setBlockNavigation, setOnTryNavigate, t]);
 
-  const handleQuickAction = useCallback(
-    async (action: string) => {
-      setIsAiThinking(true);
-      try {
-        let response = "";
-        switch (action) {
-          case "hint":
-            response = await aiService.getHint(
-              currentProblem?.id || 1,
-              code,
-              language
-            );
-            break;
-          case "explain":
-            response = await aiService.explainCode(code, language);
-            break;
-          case "debug":
-            response = await aiService.debugCode(
-              code,
-              "Debug request",
-              language
-            );
-            break;
-          case "optimize":
-            response = await aiService.optimizeCode(code, language);
-            break;
-        }
+  // Handler tombol Submit
+  const handleSubmit = () => {
+    setHasSubmitted(true);
+    setIsActive(false);
+    // Jika di mobile, langsung tampilkan editor agar tombol Resubmit terlihat
+    if (window.innerWidth < 1024) {
+      setShowDescription(false);
+    }
+    // Simpan status ke localStorage
+    localStorage.setItem(
+      `ci_solved_${currentProblem?.id}`,
+      JSON.stringify({
+        id: currentProblem?.id,
+        time: timer,
+        code,
+        date: new Date().toISOString(),
+      })
+    );
+    // Setelah submit dan user konfirmasi mengakhiri sesi, unblock navigation
+    setBlockNavigation(false);
+    setOnTryNavigate(null);
+  };
 
-        const aiMessage = {
-          id: `ai-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          type: "ai" as const,
-          content: response,
-          timestamp: new Date(),
-        };
-
-        setAiMessages((prev) => [...prev, aiMessage]);
-      } finally {
-        setIsAiThinking(false);
-      }
-    },
-    [aiService, currentProblem, code, language]
-  );
+  const [showConfirm, setShowConfirm] = useState(false);
+const [pendingNavigation, setPendingNavigation] = useState<null | (() => void)>(null);
 
   if (!currentProblem) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="max-w-full mx-auto h-screen flex flex-col">
+    <div className="max-w-full mx-auto h-screen flex flex-col px-2 sm:px-4 bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b px-6 py-4">
-        <div className="flex justify-end mb-2 gap-2">
-          <button
-            onClick={() => i18n.changeLanguage("en")}
-            className="px-2 py-1 text-xs border rounded"
-          >
-            EN
-          </button>
-          <button
-            onClick={() => i18n.changeLanguage("id")}
-            className="px-2 py-1 text-xs border rounded"
-          >
-            ID
-          </button>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+  <div className="bg-white border-b px-3 sm:px-6 py-3 sm:py-4">
+        {/* Language switcher removed, already present in navbar */}
+  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
-              onClick={() => navigate("/problems")}
-              className="text-gray-600 hover:text-gray-800"
+              onClick={() => {
+                if (!hasSubmitted) {
+                  setShowConfirm(true);
+                  setPendingNavigation(() => () => navigate("/problems"));
+                } else {
+                  navigate("/problems");
+                }
+              }}
+              className="text-gray-600 hover:text-gray-800 min-h-[36px] min-w-[100px] px-2 py-1 rounded"
+              disabled={!hasSubmitted}
+              style={!hasSubmitted ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
             >
               ← Back to Problems
             </button>
+      {/* Confirm Leave Modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full">
+            <h2 className="text-lg font-semibold mb-4">{t("confirmLeaveTitle", "Keluar dari soal?")}</h2>
+            <p className="mb-6">{t("confirmLeaveMessage", "Kamu belum submit jawaban. Apakah yakin ingin keluar?")}</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                onClick={() => {
+                  setShowConfirm(false);
+                  setPendingNavigation(null);
+                }}
+              >
+                {t("cancel", "Batal")}
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                onClick={() => {
+                  setShowConfirm(false);
+                  if (pendingNavigation) pendingNavigation();
+                }}
+              >
+                {t("leaveAnyway", "Keluar")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
             <h1 className="text-xl font-semibold text-gray-900">
-              {currentProblem.title}
+              {currentProblem.title[lang]}
             </h1>
             <span
               className={`px-2 py-1 text-xs font-medium rounded ${
@@ -726,15 +317,11 @@ public:
               {currentProblem.difficulty}
             </span>
           </div>
-
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2 text-gray-600">
-              <Clock className="h-4 w-4" />
-              <span className="font-mono">{formatTime(timer)}</span>
-            </div>
+          <div className="flex items-center gap-2 sm:gap-6">
+            <Timer timer={timer} />
             <button
               onClick={() => setShowAiPanel(!showAiPanel)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex items-center gap-2 px-3 py-2 min-h-[36px] min-w-[100px] rounded-lg transition-colors text-base ${
                 showAiPanel
                   ? "bg-primary-600 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -748,231 +335,136 @@ public:
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Problem Description */}
-        <div className="w-1/2 bg-white border-r overflow-y-auto">
-          <div className="p-6">
-            <div className="prose max-w-none">
-              <h3 className="text-lg font-semibold mb-4">
-                {t("problemDescription")}
-              </h3>
-              <div className="whitespace-pre-line text-gray-700 mb-6">
-                {currentProblem.description}
-              </div>
-
-              <h4 className="font-semibold mb-3">{t("examples")}</h4>
-              {currentProblem.examples.map((example, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-4 mb-4">
-                  <div className="mb-2">
-                    <strong>{t("input")}:</strong>{" "}
-                    <code className="bg-gray-200 px-1 rounded">
-                      {example.input}
-                    </code>
-                  </div>
-                  <div className="mb-2">
-                    <strong>{t("output")}:</strong>{" "}
-                    <code className="bg-gray-200 px-1 rounded">
-                      {example.output}
-                    </code>
-                  </div>
-                  {example.explanation && (
-                    <div className="text-sm text-gray-600">
-                      <strong>{t("explanation")}:</strong> {example.explanation}
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              <h4 className="font-semibold mb-3">{t("constraints")}</h4>
-              <ul className="list-disc list-inside space-y-1 text-gray-700">
-                {currentProblem.constraints.map((constraint, index) => (
-                  <li key={index}>{constraint}</li>
-                ))}
-              </ul>
-            </div>
+  <div className="flex-1 flex flex-col lg:flex-row overflow-hidden gap-2">
+        {/* Header Controls for Mobile */}
+  <div className="lg:hidden flex items-center justify-between p-2 border-b bg-white">
+          <button
+            onClick={() => setShowDescription(!showDescription)}
+            className="px-4 py-2 min-h-[36px] min-w-[100px] bg-gray-100 rounded-lg font-medium text-gray-700 hover:bg-gray-200 text-base"
+          >
+            {showDescription ? t("showEditor") : t("showProblem")}
+          </button>
+          <div className="flex items-center gap-2">
+            <Timer timer={timer} />
+            <button
+              onClick={() => setShowAiPanel(!showAiPanel)}
+              className={`flex items-center gap-2 px-3 py-2 min-h-[36px] min-w-[36px] rounded-lg transition-colors text-base ${
+                showAiPanel
+                  ? "bg-primary-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <Brain className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
-        {/* Code Editor & Results */}
-        <div className="w-1/2 flex flex-col relative">
-          <div className="flex-1 p-6">
-            <CodeEditor
-              initialCode={code}
-              language={language}
-              onCodeChange={handleCodeChange}
-              onLanguageChange={handleLanguageChange}
-              onRun={handleRunCode}
-              isRunning={isRunning}
-              hideRunButton={showAiPanel}
-            />
-          </div>
-
-          {/* Test Results */}
-          {testResults.length > 0 && (
-            <div className="border-t p-6 max-h-64 overflow-y-auto">
-              <h4 className="font-semibold mb-3">{t("testResults")}</h4>
-              <div className="space-y-2">
-                {testResults.map((result, index) => (
-                  <div
-                    key={result.id}
-                    className={`p-3 rounded-lg border ${
-                      result.passed
-                        ? "bg-green-50 border-green-200"
-                        : "bg-red-50 border-red-200"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        {result.passed ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-red-600" />
-                        )}
-                        <span className="font-medium">
-                          Test Case {index + 1}
-                        </span>
-                      </div>
-                      <span className="text-sm text-gray-500">
-                        {result.executionTime}ms
-                      </span>
-                    </div>
-                    <div className="text-sm">
-                      <div>
-                        {t("input")}: {JSON.stringify(result.input)}
-                      </div>
-                      <div>
-                        {t("expected")}: {JSON.stringify(result.expectedOutput)}
-                      </div>
-                      <div>
-                        {t("got")}: {JSON.stringify(result.actualOutput)}
-                      </div>
-                      {result.error && (
-                        <div className="text-red-600 mt-1">
-                          {t("error")}: {result.error}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+        {/* Problem Description - Full width on mobile when shown */}
+        <div className={`${
+          showDescription ? 'block' : 'hidden'
+        } lg:block lg:w-1/2 bg-white border-r overflow-y-auto w-full max-w-full`}>
+          <ProblemDescription problem={currentProblem} />
+          {/* Tombol Start di bawah deskripsi soal, hanya di mobile dan jika belum mulai */}
+          {!hasStarted && !hasSubmitted && (
+            <div className="block lg:hidden w-full p-4 flex justify-center">
+              <button
+                className="w-full max-w-sm px-8 py-3 min-h-[44px] bg-primary-600 text-white rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors"
+                onClick={handleStart}
+              >
+                {t("start")}
+              </button>
             </div>
           )}
         </div>
 
-        {/* AI Assistant Overlay Panel */}
-        {showAiPanel && (
-          <div className="fixed top-20 right-8 w-[400px] max-w-[90vw] h-[70vh] z-50 bg-white border border-gray-300 rounded-xl shadow-2xl flex flex-col animate-fadein">
-            <div className="p-4 border-b bg-white flex items-center justify-between rounded-t-xl">
-              <div className="flex items-center space-x-2">
-                <Brain className="h-5 w-5 text-primary-600" />
-                <span className="font-semibold">AI Assistant</span>
-              </div>
+        {/* Code Editor & Results, hanya tampil jika sudah mulai */}
+        <div className={`${
+          !showDescription ? 'block' : 'hidden'
+        } lg:block lg:w-1/2 flex flex-col relative w-full max-w-full`}>
+          {!hasStarted && !hasSubmitted && (
+            <div className="flex flex-col items-center justify-center h-full p-4">
               <button
-                onClick={() => setShowAiPanel(false)}
-                className="text-gray-400 hover:text-gray-700 text-xl font-bold px-2"
+                className="w-full max-w-sm px-8 py-3 min-h-[44px] bg-primary-600 text-white rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors"
+                onClick={handleStart}
               >
-                ×
+                {t("start")}
               </button>
             </div>
-            {/* Quick Actions */}
-            <div className="p-4 border-b bg-white">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => handleQuickAction("hint")}
-                  className="flex items-center space-x-1 p-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
-                >
-                  <Lightbulb className="h-3 w-3" />
-                  <span>{t("hint")}</span>
-                </button>
-                <button
-                  onClick={() => handleQuickAction("explain")}
-                  className="flex items-center space-x-1 p-2 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors"
-                >
-                  <Code className="h-3 w-3" />
-                  <span>{t("explain")}</span>
-                </button>
-                <button
-                  onClick={() => handleQuickAction("debug")}
-                  className="flex items-center space-x-1 p-2 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200 transition-colors"
-                >
-                  <Bug className="h-3 w-3" />
-                  <span>{t("debug")}</span>
-                </button>
-                <button
-                  onClick={() => handleQuickAction("optimize")}
-                  className="flex items-center space-x-1 p-2 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200 transition-colors"
-                >
-                  <Zap className="h-3 w-3" />
-                  <span>{t("optimize")}</span>
-                </button>
+          )}
+          {(hasStarted || hasSubmitted) && (
+            <>
+              <div className="flex-1 p-2 sm:p-4 md:p-6">
+                <CodeEditor
+                  initialCode={code}
+                  language={language}
+                  onCodeChange={handleCodeChange}
+                  onLanguageChange={handleLanguageChange}
+                  onRun={handleRunCode}
+                  isRunning={isRunning}
+                  hideRunButton={showAiPanel}
+                />
               </div>
-            </div>
-            {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {aiMessages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`${message.type === "user" ? "ml-8" : "mr-8"}`}
-                >
-                  {" "}
-                  <div
-                    className={`p-3 rounded-lg ${
-                      message.type === "user"
-                        ? "bg-primary-600 text-white ml-auto"
-                        : "bg-white border"
-                    }`}
-                  >
-                    {" "}
-                    <div className="whitespace-pre-wrap text-sm">
-                      {message.content}
-                    </div>{" "}
-                    <div
-                      className={`text-xs mt-1 ${
-                        message.type === "user"
-                          ? "text-primary-100"
-                          : "text-gray-500"
-                      }`}
+              <TestResults testResults={testResults} />
+              {!hasSubmitted && (
+                <div className="p-4 sm:p-6 border-t flex flex-col items-end gap-2">
+                  <div className="flex gap-2 w-full">
+                    <button
+                      className={`flex-1 px-4 py-2 min-h-[40px] rounded-lg font-semibold transition-colors text-base ${testResults.length > 0 && testResults.every(r => r.passed) ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                      onClick={() => {
+                        if (testResults.length > 0 && testResults.every(r => r.passed)) handleSubmit();
+                      }}
+                      disabled={!(testResults.length > 0 && testResults.every(r => r.passed))}
                     >
-                      {message.timestamp.toLocaleTimeString()}
-                    </div>{" "}
-                  </div>{" "}
-                </div>
-              ))}
-              {isAiThinking && (
-                <div className="mr-8">
-                  <div className="bg-white border p-3 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-600"></div>
-                      <span className="text-sm text-gray-600">
-                        AI is thinking...
-                      </span>
-                    </div>
+                      {t("submit")}
+                    </button>
+                    <button
+                      className="flex-1 px-4 py-2 min-h-[40px] bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors text-base"
+                      onClick={() => {
+                        if (window.confirm(t('confirmEndAnyway', 'Jawabanmu belum benar. Akhiri dan submit sebagai gagal?'))) {
+                          handleSubmit();
+                        }
+                      }}
+                    >
+                      {t('finishAnyway', 'Akhiri')}
+                    </button>
                   </div>
                 </div>
               )}
-            </div>
-            {/* Message Input */}
-            <div className="p-4 border-t bg-white rounded-b-xl">
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={userMessage}
-                  onChange={(e) => setUserMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                  placeholder={t("askAi")}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-                />
-                <button
-                  onClick={handleSendMessage}
-                  disabled={!userMessage.trim() || isAiThinking}
-                  className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+              {hasSubmitted && (
+                <div className="p-4 sm:p-6 border-t flex flex-col items-center gap-3 mt-2">
+                  <div className="text-green-700 font-semibold text-center">
+                    {t("submittedMessage")}
+                  </div>
+                  <button
+                    className="w-full max-w-xs px-6 py-3 min-h-[44px] bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-base shadow-md"
+                    style={{ position: 'relative', zIndex: 10 }}
+                    onClick={() => {
+                      setHasSubmitted(false);
+                      setHasStarted(true);
+                      setIsActive(true);
+                      setTimer(0);
+                      setTestResults([]);
+                    }}
+                  >
+                    {t('resubmit', 'Resubmit')}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* AI Assistant Overlay Panel */}
+        <AIAssistantPanel
+          show={showAiPanel}
+          onClose={() => setShowAiPanel(false)}
+          aiMessages={aiMessages}
+          userMessage={userMessage}
+          setUserMessage={setUserMessage}
+          isAiThinking={isAiThinking}
+          handleSendMessage={handleSendMessage}
+          handleQuickAction={handleQuickAction}
+        />
       </div>
     </div>
   );

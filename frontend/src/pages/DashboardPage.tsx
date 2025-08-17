@@ -12,6 +12,7 @@ import {
   Award,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import QuickQuestionCard from "../components/QuickQuestionCard";
 
 const DashboardPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -93,6 +94,7 @@ const DashboardPage: React.FC = () => {
         <p className="text-gray-600 mt-2">{t("dashboard.ready")}</p>
       </div>
 
+  <QuickQuestionCard />
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-lg p-6 shadow-sm border">
