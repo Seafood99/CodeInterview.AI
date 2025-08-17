@@ -48,7 +48,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Hero Section */}
-      <div className="text-center py-20">
+  <div className="text-center py-20 relative">
         <h1 className="text-5xl font-bold text-gray-900 mb-6">
           {t("home.title1")}{" "}
           <span className="text-primary-600">{t("home.title2")}</span>
