@@ -1,18 +1,54 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Code, Brain, Target, BarChart } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+const TypingHero: React.FC<{ text: string; highlight: string }> = ({
+  text,
+  highlight,
+}) => {
+  const [displayed, setDisplayed] = useState("");
+  const [showCursor, setShowCursor] = useState(true);
+  const i = useRef(0);
+  useEffect(() => {
+    setDisplayed("");
+    i.current = 0;
+    setShowCursor(true);
+    const full = text + " " + highlight;
+    const interval = setInterval(() => {
+      setDisplayed((prev) => {
+        if (i.current < full.length) {
+          i.current++;
+          return full.slice(0, i.current);
+        } else {
+          clearInterval(interval);
+          setTimeout(() => setShowCursor(false), 800);
+          return prev;
+        }
+      });
+    }, 60);
+    return () => clearInterval(interval);
+  }, [text, highlight]);
+  return (
+    <h1 className="text-5xl font-bold text-gray-900 mb-6">
+      {displayed.slice(0, text.length)}
+      <span className="text-primary-600">{displayed.slice(text.length)}</span>
+      <span
+        className={`ml-1 inline-block w-2 h-8 align-middle bg-primary-600 rounded transition-opacity duration-300 ${
+          showCursor ? "opacity-100" : "opacity-0"
+        }`}
+      ></span>
+    </h1>
+  );
+};
+
 const HomePage: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   return (
     <div className="max-w-6xl mx-auto">
       {/* Hero Section */}
       <div className="text-center py-20">
-        <h1 className="text-5xl font-bold text-gray-900 mb-6">
-          {t("home.title1")}{" "}
-          <span className="text-primary-600">{t("home.title2")}</span>
-        </h1>
+        <TypingHero text={t("home.title1")} highlight={t("home.title2")} />
         <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
           {t("home.subtitle")}
         </p>
