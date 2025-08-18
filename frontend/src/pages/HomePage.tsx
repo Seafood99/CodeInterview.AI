@@ -46,7 +46,7 @@ const TypingHero: React.FC<{ text: string; highlight: string }> = ({
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       {/* Hero Section */}
   <div className="text-center py-20 relative">
         <h1 className="text-5xl font-bold text-gray-900 mb-6">
